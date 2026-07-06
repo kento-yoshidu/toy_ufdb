@@ -9,6 +9,13 @@ pub struct Ufdb {
 }
 
 impl Ufdb {
+    pub fn new() -> Self {
+        Self {
+            keys: HashMap::new(),
+            uf: union_find::UnionFind::new(),
+        }
+    }
+
     pub fn make_set(&mut self, key: &str) -> bool {
         if !self.keys.contains_key(key) {
             let index = self.uf.add();
@@ -19,5 +26,36 @@ impl Ufdb {
         } else {
             false
         }
+    }
+
+    pub fn unite(&mut self, key_a: &str, key_b: &str) -> bool {
+        self.make_set(key_a);
+        self.make_set(key_b);
+
+        let a_index = self.keys[key_a];
+        let b_index = self.keys[key_b];
+
+        self.uf.unite(a_index, b_index)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unite_auto_registers_unknown_keys_and_connects_them() {
+        let mut ufdb = Ufdb::new();
+
+        // "a" も "b" もまだ make_set していないが、unite が内部で自動登録するはず
+        let merged = ufdb.unite("a", "b");
+
+        assert!(merged);
+        assert_eq!(ufdb.keys.len(), 2);
+
+        let a_index = ufdb.keys["a"];
+        let b_index = ufdb.keys["b"];
+
+        assert!(ufdb.uf.same(a_index, b_index));
     }
 }
