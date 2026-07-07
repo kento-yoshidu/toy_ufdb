@@ -37,6 +37,14 @@ impl Ufdb {
 
         self.uf.unite(a_index, b_index)
     }
+
+    pub fn same(&mut self, key_a: &str, key_b: &str) -> bool {
+        let (Some(a_index), Some(b_index)) = (self.keys.get(key_a), self.keys.get(key_b)) else {
+            return false;
+        };
+
+        self.uf.same(*a_index, *b_index)
+    }
 }
 
 #[cfg(test)]
@@ -47,7 +55,6 @@ mod tests {
     fn unite_auto_registers_unknown_keys_and_connects_them() {
         let mut ufdb = Ufdb::new();
 
-        // "a" も "b" もまだ make_set していないが、unite が内部で自動登録するはず
         let merged = ufdb.unite("a", "b");
 
         assert!(merged);
@@ -57,5 +64,32 @@ mod tests {
         let b_index = ufdb.keys["b"];
 
         assert!(ufdb.uf.same(a_index, b_index));
+    }
+
+    #[test]
+    fn same_returns_true_after_unite() {
+        let mut ufdb = Ufdb::new();
+
+        ufdb.unite("a", "b");
+
+        assert!(ufdb.same("a", "b"));
+    }
+
+    #[test]
+    fn same_returns_false_when_not_united() {
+        let mut ufdb = Ufdb::new();
+
+        ufdb.make_set("a");
+        ufdb.make_set("b");
+
+        assert!(!ufdb.same("a", "b"));
+    }
+
+    #[test]
+    fn same_returns_false_for_unregistered_keys_without_registering_them() {
+        let mut ufdb = Ufdb::new();
+
+        assert!(!ufdb.same("a", "b"));
+        assert_eq!(ufdb.keys.len(), 0);
     }
 }
