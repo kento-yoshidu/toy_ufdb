@@ -32,19 +32,21 @@ Union-Find（素集合データ構造）を核にしたトイDB。Rust製、CLI(
 - path compression 後も find の結果が変わらないこと
 
 ## Phase 2: REPL / CLI (`src/main.rs`)
+- [x] `Cargo.toml` に `clap`（`features = ["derive"]`）を追加
+- [x] `Cli` / `Commands` の型定義（`#[command(rename_all = "UPPER")]` でサブコマンド名を大文字化）
+- [x] `Cli::parse()`（実引数）で `INSERT <key>` が正しくパースできることを確認（例: `cargo run -- INSERT apple` → `key = apple`）。REPL化・`Ufdb`連携はこれから
 - コマンドのパースには `clap`（derive API）を使う
   - `Cli { command: Commands }` を `#[derive(Parser)]`、`Commands` を `#[derive(Subcommand)]` で定義
   - REPLは標準入力を1行ずつ読み、空白分割した引数の先頭にダミーのプログラム名を足してから `Cli::try_parse_from(...)` に渡す（clapは本来argv全体を1回パースする前提のため、REPLの1行ごとの入力もこの形に合わせる）
   - パースエラーは clap が生成するメッセージをそのまま表示できる（パニックさせない）
 - 対応コマンド（サブコマンドとして定義。詳細はREADMEの「CLIコマンド」参照）:
   - `INSERT <key>` … `make_set`
-  - `MERGE <a> <b>` … `union`
+  - `MERGE <a> <b>` … `unite`
   - `SAME <a> <b>` … `same`
   - `GROUPS` … 代表元ごとにグループをまとめて一覧表示
   - `exit` / `quit`
   - `help` は clap が自動生成するので個別実装は不要
-  - `FIND`（代表元キーをそのまま返すコマンド）は採用しない。代表元はunion by sizeの内部ロジック次第でユーザーからは予測できない値になるため、コマンドとして見せる価値が薄いと判断（詳細はREADME参照）。`find` 自体は `unite`/`connected`/`GROUPS` の内部実装としては引き続き使う
-- `Cargo.toml` に `clap`（`features = ["derive"]`）を追加する
+  - `FIND`（代表元キーをそのまま返すコマンド）は採用しない。代表元はunion by sizeの内部ロジック次第でユーザーからは予測できない値になるため、コマンドとして見せる価値が薄いと判断（詳細はREADME参照）。`find` 自体は `unite`/`same`/`GROUPS` の内部実装としては引き続き使う
 - 各コマンド実行のたびに実行時間を表示する
   - `std::time::Instant::now()` で計測開始 → コマンド実行 → `elapsed().as_nanos()` でナノ秒として出力
   - 表示はナノ秒だが、実際のOSタイマー精度はナノ秒より粗い場合がある点は認識しておく
