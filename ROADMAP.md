@@ -17,12 +17,12 @@ Union-Find（素集合データ構造）を核にしたトイDB。Rust製、CLI(
 - `make_set(&mut self, key: &str)` … 未登録キーなら新しい集合として追加。既存なら何もしない
 - `find(&mut self, key: &str) -> Option<String>` … 代表元のキーを返す。path compression込み。存在しないキーは `None`
 - `union(&mut self, a: &str, b: &str)` … 2つの集合を統合。存在しないキーは内部で `make_set` して扱う
-- `connected(&mut self, a: &str, b: &str) -> bool` … 同じ集合か判定
+- `same(&mut self, a: &str, b: &str) -> bool` … 同じ集合か判定。`UnionFind::same` と名前を揃える。`unite` と異なり、未登録キーが渡されても `make_set` はせず、単に `false` を返す（SAMEは参照系の操作であり、呼ぶだけでデータが増えるのは直感に反するため）
 
 設計判断ポイント（実装しながら決める）:
-- `find` の再帰 vs ループ実装（再帰は大量データでスタックオーバーフローの可能性あり → ループ推奨）
-- union by rank と union by size のどちらにするか（size の方が後の「グループ一覧・グループサイズ」機能と相性が良い）
-- 存在しないキーに対する `union`/`connected` の挙動（自動登録 or エラー）を最初に決めて一貫させる
+- ~~`find` の再帰 vs ループ実装（再帰は大量データでスタックオーバーフローの可能性あり → ループ推奨）~~ → union by sizeで木の高さがO(log n)に抑えられるため、再帰のままで問題なしと結論
+- union by rank と union by size のどちらにするか → **決定: size**（後の「グループ一覧・グループサイズ」機能と相性が良い）
+- 存在しないキーに対する挙動 → **決定**: `unite` は自動登録（`make_set`してから統合）、`connected` は登録せず `false`
 
 単体テストで最低限カバーすべきケース:
 - 単純な union → find で同じ代表元になる
@@ -39,12 +39,15 @@ Union-Find（素集合データ構造）を核にしたトイDB。Rust製、CLI(
 - 対応コマンド（サブコマンドとして定義。詳細はREADMEの「CLIコマンド」参照）:
   - `INSERT <key>` … `make_set`
   - `MERGE <a> <b>` … `union`
-  - `SAME <a> <b>` … `connected`
+  - `SAME <a> <b>` … `same`
   - `GROUPS` … 代表元ごとにグループをまとめて一覧表示
   - `exit` / `quit`
   - `help` は clap が自動生成するので個別実装は不要
   - `FIND`（代表元キーをそのまま返すコマンド）は採用しない。代表元はunion by sizeの内部ロジック次第でユーザーからは予測できない値になるため、コマンドとして見せる価値が薄いと判断（詳細はREADME参照）。`find` 自体は `unite`/`connected`/`GROUPS` の内部実装としては引き続き使う
 - `Cargo.toml` に `clap`（`features = ["derive"]`）を追加する
+- 各コマンド実行のたびに実行時間を表示する
+  - `std::time::Instant::now()` で計測開始 → コマンド実行 → `elapsed().as_nanos()` でナノ秒として出力
+  - 表示はナノ秒だが、実際のOSタイマー精度はナノ秒より粗い場合がある点は認識しておく
 
 ## Phase 3: グループ機能の仕上げ
 - [ ] `GROUPS` コマンド: `HashMap<代表元, Vec<キー>>` を組み立てて表示
