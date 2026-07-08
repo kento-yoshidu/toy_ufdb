@@ -27,18 +27,25 @@ fn main() {
         tokens.extend(line.split_whitespace());
 
         match Cli::try_parse_from(tokens) {
-            Ok(cli) => match cli.command {
-                Commands::Hello => {
-                    println!("Hello World");
-                },
-                Commands::Insert { key } => {
-                    let inserted = ufdb.make_set(&key);
-                    println!("{inserted}");
-                },
-                Commands::Exit => {
-                    println!("bye.");
-                    break;
-                },
+            Ok(cli) => {
+                let start = std::time::Instant::now();
+
+                match cli.command {
+                    Commands::Hello => {
+                        println!("Hello World");
+                    },
+                    Commands::Insert { key } => {
+                        let inserted = ufdb.make_set(&key);
+                        println!("{inserted}");
+                    },
+                    Commands::Exit => {
+                        println!("bye.");
+                        break;
+                    },
+                }
+
+                let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+                println!("elapsed: {elapsed_ms:.6}ms");
             },
             Err(e) => eprintln!("{e}"),
         }
