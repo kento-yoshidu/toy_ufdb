@@ -45,6 +45,18 @@ impl Ufdb {
 
         self.uf.same(*a_index, *b_index)
     }
+
+    pub fn groups(&mut self) -> HashMap<usize, Vec<&String>> {
+        let mut groups = HashMap::new();
+
+        for (key, index) in self.keys.iter() {
+            let root = self.uf.find(*index);
+
+            groups.entry(root).or_insert_with(Vec::new).push(key);
+        }
+
+        groups
+    }
 }
 
 #[cfg(test)]
