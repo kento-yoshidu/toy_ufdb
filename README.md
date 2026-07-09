@@ -44,7 +44,9 @@ pub struct Ufdb {
 - `unite(key_a, key_b)` — `key_a`・`key_b`それぞれに`make_set`を呼んでから（未登録キーも自動で登録される）、両者のインデックスで`UnionFind::unite`を呼ぶ。すでに同じ集合なら`false`
 - `same(key_a, key_b)` — `key_a`・`key_b`が両方登録済みの場合のみ`UnionFind::same`に委譲する。どちらか一方でも未登録なら登録はせず`false`を返す
 
-## CLIコマンド
+## UFQL（CLIコマンド）
+
+SQLに相当する、このDBの命令文の呼び名を **UFQL**（Union-Find Query Language）とする。REPL上で1行ずつ入力する。
 
 | コマンド | 対応する内部処理 | 役割 |
 | --- | --- | --- |

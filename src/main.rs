@@ -14,6 +14,9 @@ struct Cli {
 enum Commands {
     Hello,
     Insert { key: String },
+    Same { key_a: String, key_b: String },
+    Merge { key_a: String, key_b: String },
+    Groups,
     Exit,
 }
 
@@ -38,6 +41,19 @@ fn main() {
                         let inserted = ufdb.make_set(&key);
                         println!("{inserted}");
                     },
+                    Commands::Merge { key_a, key_b } => {
+                        let res = ufdb.unite(&key_a, &key_b);
+                        println!("{res}");
+                    },
+                    Commands::Same { key_a, key_b } => {
+                        let res = ufdb.same(&key_a, &key_b);
+                        println!("{res}");
+                    }
+                    Commands::Groups => {
+                        let res = ufdb.groups();
+
+                        println!("{:?}", res);
+                    },
                     Commands::Exit => {
                         println!("bye.");
                         break;
@@ -49,5 +65,24 @@ fn main() {
             },
             Err(e) => eprintln!("{e}"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_same_command() {
+        let cli = Cli::try_parse_from(["repl", "SAME", "a", "b"]).unwrap();
+
+        assert!(matches!(cli.command, Commands::Same { key_a, key_b } if key_a == "a" && key_b == "b"));
+    }
+
+    #[test]
+    fn parses_merge_command() {
+        let cli = Cli::try_parse_from(["repl", "MERGE", "a", "b"]).unwrap();
+
+        assert!(matches!(cli.command, Commands::Merge { key_a, key_b } if key_a == "a" && key_b == "b"));
     }
 }
