@@ -17,6 +17,7 @@ enum Commands {
     Same { key_a: String, key_b: String },
     Merge { key_a: String, key_b: String },
     Groups,
+    SEED,
     Exit,
 }
 
@@ -53,6 +54,13 @@ fn main() {
                         let res = ufdb.groups();
 
                         println!("{:?}", res);
+                    },
+                    Commands::SEED => {
+                        if ufdb.is_empty() {
+                            ufdb.seed();
+                        } else {
+                            println!("木が存在している");
+                        }
                     },
                     Commands::Exit => {
                         println!("bye.");

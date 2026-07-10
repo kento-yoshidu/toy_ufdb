@@ -57,6 +57,27 @@ impl Ufdb {
 
         groups
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.keys.is_empty()
+    }
+
+    pub fn seed(&mut self) {
+        let unions = [
+            ("apple", "banana"),
+            ("banana", "cherry"),
+            ("date", "elderberry"),
+            ("grape", "honeydew"),
+            ("honeydew", "kiwi"),
+            ("kiwi", "lemon"),
+        ];
+
+        for (a, b) in unions {
+            self.unite(a, b);
+        }
+
+        self.make_set("fig");
+    }
 }
 
 #[cfg(test)]
