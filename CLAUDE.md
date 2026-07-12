@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `src/lib.rs` — `Ufdb`構造体。`HashMap<String, usize>`でキーとインデックスを橋渡しし、`UnionFind`に処理を委譲する
 - `src/main.rs` — REPL本体。`clap`（derive API）でコマンドをパースし、標準入力を1行ずつ読んで実行する
 
-詳細な設計判断・データ構造の説明は `README.md`、実装計画・進捗は `ROADMAP.md` を参照。
+ユーザー向けの概要・使い方・用語集は `README.md`、内部実装・計算量は `docs/architecture.md`、Union-Find自体の一般論は `docs/union-find.md`、実装計画・進捗は `docs/ROADMAP.md` を参照。
 
 ## コマンド
 
@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 このプロジェクトの実装コードは基本的にユーザー自身が書く。Claude Codeの役割は:
 
-- `ROADMAP.md` / `README.md` / `CLAUDE.md` の作成・更新
+- `README.md` / `docs/`配下のドキュメント（`ROADMAP.md`・`architecture.md`・`union-find.md`）/ `CLAUDE.md` の作成・更新
 - 設計上の概念について説明する（コードを渡すのではなくSocratic的に）
 - ユーザーが書いたコードのレビュー・指摘
 - `cargo build` / `cargo test` によるビルド・動作確認
