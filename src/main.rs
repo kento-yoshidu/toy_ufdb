@@ -24,7 +24,9 @@ enum Commands {
 fn main() {
     let mut ufdb = Ufdb::new();
 
-    for line in io::stdin().lock().lines() {
+    let mut lines = io::stdin().lock().lines();
+
+    while let Some(line) = lines.next() {
         let line = line.unwrap();
 
         let mut tokens = vec!["repl"];
@@ -51,15 +53,31 @@ fn main() {
                         println!("{res}");
                     }
                     Commands::Groups => {
-                        let res = ufdb.groups();
+                        let mut groups: Vec<Vec<&String>> = ufdb.groups().into_values().collect();
 
-                        println!("{:?}", res);
+                        for group in &mut groups {
+                            group.sort();
+                        }
+
+                        groups.sort_by(|a, b| b.len().cmp(&a.len()));
+
+                        for group in groups {
+                            let line: String = group.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", ");
+
+                            println!("{line}");
+                        }
                     },
                     Commands::SEED => {
                         if ufdb.is_empty() {
                             ufdb.seed();
                         } else {
-                            println!("木が存在している");
+                            println!("既存のデータがあります。SEEDを実行しますか？ (y/n)");
+
+                            let answer = lines.next().unwrap().unwrap();
+
+                            if answer.trim() == "y" {
+                                ufdb.seed();
+                            }
                         }
                     },
                     Commands::Exit => {
@@ -69,7 +87,7 @@ fn main() {
                 }
 
                 let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
-                println!("elapsed: {elapsed_ms:.6}ms");
+                println!("elapsed: {elapsed_ms:.6}ms\n");
             },
             Err(e) => eprintln!("{e}"),
         }
