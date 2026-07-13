@@ -91,4 +91,21 @@ mod tests {
         assert!(uf.same(a, b));
         assert!(!uf.same(a, c));
     }
+
+    #[test]
+    fn size_reflects_set_size_after_unite() {
+        let mut uf = UnionFind::new();
+
+        let a = uf.add();
+        let b = uf.add();
+        let c = uf.add();
+
+        assert_eq!(uf.size(a), 1);
+
+        uf.unite(a, b);
+
+        assert_eq!(uf.size(a), 2);
+        assert_eq!(uf.size(b), 2);
+        assert_eq!(uf.size(c), 1);
+    }
 }

@@ -16,6 +16,7 @@ enum Commands {
     Insert { key: String },
     Same { key_a: String, key_b: String },
     Merge { key_a: String, key_b: String },
+    Size { key: String },
     Groups,
     SEED,
     Exit,
@@ -67,6 +68,12 @@ fn main() {
                             println!("{line}");
                         }
                     },
+                    Commands::Size { key } => {
+                        match ufdb.size(&key) {
+                            Some(size) => println!("{size}"),
+                            None => eprintln!("キー {key} は登録されていません"),
+                        }
+                    },
                     Commands::SEED => {
                         if ufdb.is_empty() {
                             ufdb.seed();
@@ -110,5 +117,12 @@ mod tests {
         let cli = Cli::try_parse_from(["repl", "MERGE", "a", "b"]).unwrap();
 
         assert!(matches!(cli.command, Commands::Merge { key_a, key_b } if key_a == "a" && key_b == "b"));
+    }
+
+    #[test]
+    fn parses_size_command() {
+        let cli = Cli::try_parse_from(["repl", "SIZE", "a"]).unwrap();
+
+        assert!(matches!(cli.command, Commands::Size { key } if key == "a"));
     }
 }

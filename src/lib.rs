@@ -58,6 +58,14 @@ impl Ufdb {
         groups
     }
 
+    pub fn size(&mut self, key: &str) -> Option<usize> {
+        let Some(index) = self.keys.get(key) else {
+            return None;
+        };
+
+        Some(self.uf.size(*index))
+    }
+
     pub fn is_empty(&self) -> bool {
         self.keys.is_empty()
     }
@@ -124,5 +132,31 @@ mod tests {
 
         assert!(!ufdb.same("a", "b"));
         assert_eq!(ufdb.keys.len(), 0);
+    }
+
+    #[test]
+    fn size_returns_none_for_unregistered_key() {
+        let mut ufdb = Ufdb::new();
+
+        assert_eq!(ufdb.size("a"), None);
+    }
+
+    #[test]
+    fn size_returns_one_for_freshly_registered_key() {
+        let mut ufdb = Ufdb::new();
+
+        ufdb.make_set("a");
+
+        assert_eq!(ufdb.size("a"), Some(1));
+    }
+
+    #[test]
+    fn size_increases_after_unite() {
+        let mut ufdb = Ufdb::new();
+
+        ufdb.unite("a", "b");
+
+        assert_eq!(ufdb.size("a"), Some(2));
+        assert_eq!(ufdb.size("b"), Some(2));
     }
 }
