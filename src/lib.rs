@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 
 mod union_find;
+mod graph;
 
 #[derive(Debug)]
 pub struct Ufdb {
     keys: HashMap<String, usize>,
     uf: union_find::UnionFind,
+    graph: graph::Graph,
 }
 
 impl Ufdb {
@@ -13,6 +15,7 @@ impl Ufdb {
         Self {
             keys: HashMap::new(),
             uf: union_find::UnionFind::new(),
+            graph: graph::Graph::new(),
         }
     }
 
@@ -35,7 +38,12 @@ impl Ufdb {
         let a_index = self.keys[key_a];
         let b_index = self.keys[key_b];
 
-        self.uf.unite(a_index, b_index)
+        if self.uf.unite(a_index, b_index) {
+            self.graph.add_edge(key_a, key_b);
+            true
+        } else {
+            false
+        }
     }
 
     pub fn same(&mut self, key_a: &str, key_b: &str) -> bool {
@@ -105,6 +113,14 @@ mod tests {
         let b_index = ufdb.keys["b"];
 
         assert!(ufdb.uf.same(a_index, b_index));
+    }
+
+    #[test]
+    fn unite_returns_false_when_already_same_set() {
+        let mut ufdb = Ufdb::new();
+
+        assert!(ufdb.unite("a", "b"));
+        assert!(!ufdb.unite("a", "b"));
     }
 
     #[test]
