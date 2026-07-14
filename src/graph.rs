@@ -14,9 +14,18 @@ impl Graph {
         }
     }
 
+    pub fn add_node(&mut self, key: &str) {
+        self.edges.entry(key.to_string()).or_insert_with(Vec::new);
+    }
+
     pub fn add_edge(&mut self, key_a: &str, key_b: &str) {
         self.edges.entry(key_a.to_string()).or_insert_with(Vec::new).push(key_b.to_string());
         self.edges.entry(key_b.to_string()).or_insert_with(Vec::new).push(key_a.to_string());
+    }
+
+    #[cfg(test)]
+    pub(crate) fn neighbors(&self, key: &str) -> Option<&Vec<String>> {
+        self.edges.get(key)
     }
 }
 

@@ -24,6 +24,7 @@ impl Ufdb {
             let index = self.uf.add();
 
             self.keys.insert(key.to_string(), index);
+            self.graph.add_node(key);
 
             true
         } else {
@@ -113,6 +114,25 @@ mod tests {
         let b_index = ufdb.keys["b"];
 
         assert!(ufdb.uf.same(a_index, b_index));
+    }
+
+    #[test]
+    fn make_set_registers_isolated_node_in_graph() {
+        let mut ufdb = Ufdb::new();
+
+        ufdb.make_set("a");
+
+        assert_eq!(ufdb.graph.neighbors("a"), Some(&vec![]));
+    }
+
+    #[test]
+    fn unite_registers_edge_in_graph() {
+        let mut ufdb = Ufdb::new();
+
+        ufdb.unite("a", "b");
+
+        assert_eq!(ufdb.graph.neighbors("a"), Some(&vec!["b".to_string()]));
+        assert_eq!(ufdb.graph.neighbors("b"), Some(&vec!["a".to_string()]));
     }
 
     #[test]
