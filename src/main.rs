@@ -1,7 +1,7 @@
 use std::io::{self, BufRead};
 
 use clap::{Parser, Subcommand};
-use toy_ufdb::Ufdb;
+use toy_ufdb::db;
 
 #[derive(Parser)]
 struct Cli {
@@ -18,12 +18,14 @@ enum Commands {
     Merge { key_a: String, key_b: String },
     Size { key: String },
     Groups,
+    Createdb { db_name: String },
+    Use { db_name: String },
     SEED,
     Exit,
 }
 
 fn main() {
-    let mut ufdb = Ufdb::new();
+    let mut db = db::Db::new();
 
     let mut lines = io::stdin().lock().lines();
 
@@ -42,19 +44,19 @@ fn main() {
                         println!("Hello World");
                     },
                     Commands::Insert { key } => {
-                        let inserted = ufdb.make_set(&key);
+                        let inserted = db.current().make_set(&key);
                         println!("{inserted}");
                     },
                     Commands::Merge { key_a, key_b } => {
-                        let res = ufdb.unite(&key_a, &key_b);
+                        let res = db.current().unite(&key_a, &key_b);
                         println!("{res}");
                     },
                     Commands::Same { key_a, key_b } => {
-                        let res = ufdb.same(&key_a, &key_b);
+                        let res = db.current().same(&key_a, &key_b);
                         println!("{res}");
                     }
                     Commands::Groups => {
-                        let mut groups: Vec<Vec<&String>> = ufdb.groups().into_values().collect();
+                        let mut groups: Vec<Vec<&String>> = db.current().groups().into_values().collect();
 
                         for group in &mut groups {
                             group.sort();
@@ -69,21 +71,41 @@ fn main() {
                         }
                     },
                     Commands::Size { key } => {
-                        match ufdb.size(&key) {
+                        match db.current().size(&key) {
                             Some(size) => println!("{size}"),
                             None => eprintln!("キー {key} は登録されていません"),
                         }
                     },
+                    Commands::Createdb { db_name } => {
+                        if db.create_db(&db_name) {
+                            println!("DB {db_name} を作成しました。");
+                        } else {
+                            println!("DB {db_name} は既に存在します。");
+                        }
+                    },
+                    Commands::Use { db_name } => {
+                        if db.use_db(&db_name) {
+                            println!("DB {db_name} に切り替えました。");
+                        } else {
+                            println!("DB {db_name} は存在しません。作成しますか？(y/n)");
+
+                            let ans = lines.next().unwrap().unwrap();
+
+                            if ans.trim() == "y" {
+                                db.create_db(&db_name);
+                            }
+                        }
+                    }
                     Commands::SEED => {
-                        if ufdb.is_empty() {
-                            ufdb.seed();
+                        if db.current().is_empty() {
+                            db.current().seed();
                         } else {
                             println!("既存のデータがあります。SEEDを実行しますか？ (y/n)");
 
-                            let answer = lines.next().unwrap().unwrap();
+                            let ans= lines.next().unwrap().unwrap();
 
-                            if answer.trim() == "y" {
-                                ufdb.seed();
+                            if ans.trim() == "y" {
+                                db.current().seed();
                             }
                         }
                     },

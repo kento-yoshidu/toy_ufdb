@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 mod union_find;
 mod graph;
-mod db;
+pub mod db;
 
 #[derive(Debug)]
 pub struct Ufdb {
