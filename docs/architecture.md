@@ -2,10 +2,11 @@
 
 `toy_ufdb` の内部実装。Union-Find自体の一般的な理論は [`union-find.md`](./union-find.md) を参照。
 
-## 2層構造
+## 3層構造
 
 - `UnionFind`（`src/union_find.rs`）— インデックス（`usize`）だけを扱う、Union-Findのコアアルゴリズム層。文字列キーの存在は一切知らない
 - `Ufdb`（`src/lib.rs`）— `HashMap<String, usize>` で文字列キーとインデックスを橋渡しし、`UnionFind` に処理を委譲する層
+- `Db`（`src/db.rs`）— `HashMap<String, Ufdb>` で名前付きの複数`Ufdb`インスタンスを束ね、「現在選択中のDB名」を管理する層。`USE`/`CREATEDB`はこの層の操作
 
 ### `UnionFind`
 
@@ -42,6 +43,26 @@ pub struct Ufdb {
 | `make_set(key)` | キーが未登録なら `UnionFind::add()` で新しいインデックスを確保し `HashMap` に登録する（新規追加なら `true`、既存なら何もせず `false`） | ならしO(1)（HashMapの挿入） |
 | `unite(key_a, key_b)` | `key_a`・`key_b` それぞれに `make_set` を呼んでから（未登録キーも自動で登録される）、両者のインデックスで `UnionFind::unite` を呼ぶ。すでに同じグループなら `false` | ならしO(α(n)) |
 | `same(key_a, key_b)` | `key_a`・`key_b` が両方登録済みの場合のみ `UnionFind::same` に委譲する。どちらか一方でも未登録なら登録はせず `false` を返す | ならしO(α(n)) |
+
+### `Db`
+
+```rust
+pub struct Db {
+    current_db: String,           // 現在選択中のDB名
+    db: HashMap<String, Ufdb>,    // DB名 → Ufdbインスタンス
+}
+```
+
+`Ufdb`が文字列キーとインデックスを橋渡しするのと同じように、`Db`はDB名と`Ufdb`インスタンスを橋渡しする。各DBは完全に独立した`Ufdb`インスタンス（独自の`keys`・独自の`UnionFind`）なので、DBをまたいだ`MERGE`/`SAME`などは成立しない。
+
+不変条件: `current_db`が指す名前は常に`db`の中に実在するキーである。この条件は`new`/`create_db`/`use_db`の3メソッドだけが`current_db`を書き換えることで維持されており、`current`メソッドはこの条件を前提に`unwrap()`している。
+
+| メソッド | 役割 |
+| --- | --- |
+| `new()` | デフォルトDB `ufdb` を1つ持った状態で初期化し、`current_db`もそれにする |
+| `current()` | 選択中の`Ufdb`への可変参照を返す。`INSERT`などのコマンドはこれ経由で`Ufdb`のメソッドに委譲する |
+| `create_db(name)` | `db`に`name`が無ければ`Ufdb::new()`を挿入。あれば何もしない。いずれの場合も`current_db`を`name`に切り替える（戻り値は新規作成なら`true`） |
+| `use_db(name)` | `db`に`name`があれば`current_db`を切り替えて`true`。無ければ切り替えずに`false`（自動作成しない） |
 
 ## 検証済みの規模
 
