@@ -56,6 +56,13 @@ impl UnionFind {
 
         self.size[root]
     }
+
+    pub fn reset(&mut self) {
+        for i in 0..self.parent.len() {
+            self.parent[i] = i;
+            self.size[i] = 1;
+        }
+    }
 }
 
 #[cfg(test)]

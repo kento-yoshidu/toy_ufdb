@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, print, println};
 
 mod union_find;
 mod graph;
@@ -78,6 +78,24 @@ impl Ufdb {
 
     pub fn is_empty(&self) -> bool {
         self.keys.is_empty()
+    }
+
+    // graphが正（実際にMERGEされた辺の記録）で、ufはそこから毎回作り直せる派生データ。
+    // 1) 対象の辺をgraphから削除 → 2) ufを初期状態（全員バラバラ）に戻す →
+    // 3) 残ったgraphの辺をkeysでインデックスに変換しながらufに再生する
+    pub fn unmerge(&mut self, key_a: &str, key_b: &str) {
+        self.uf.reset();
+        self.graph.remove_edge(key_a, key_b);
+
+        for (key, index) in self.keys.iter() {
+            if let Some(neighbors) = self.graph.neighbors(key) {
+                for neighbor in neighbors {
+                    let neighbor_index = self.keys[neighbor];
+
+                    self.uf.unite(*index, neighbor_index);
+                }
+            }
+        }
     }
 
     pub fn seed(&mut self) {
