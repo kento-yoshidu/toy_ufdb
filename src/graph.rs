@@ -23,8 +23,23 @@ impl Graph {
         self.edges.entry(key_b.to_string()).or_insert_with(Vec::new).push(key_a.to_string());
     }
 
-    #[cfg(test)]
-    pub(crate) fn neighbors(&self, key: &str) -> Option<&Vec<String>> {
+    pub fn remove_edge(&mut self, key_a: &str, key_b: &str) {
+        let Some(map) = self.edges.get_mut(key_a) else {
+            return;
+            // Todo:
+        };
+
+        map.retain(|key| key != key_b);
+
+        let Some(map) = self.edges.get_mut(key_b) else {
+            return;
+            // Todo:
+        };
+
+        map.retain(|key| key != key_a);
+    }
+
+    pub fn neighbors(&self, key: &str) -> Option<&Vec<String>> {
         self.edges.get(key)
     }
 }
